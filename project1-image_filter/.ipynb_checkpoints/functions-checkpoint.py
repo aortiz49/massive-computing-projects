@@ -142,17 +142,18 @@ def dp(v1,v2):
     r=0
     
     for i in range(len(x)):
-        r += x[i]*y[i]
+        r += float(x[i]*y[i])
     
     return r 
 
-
+# ---------------------------------------------------------------------------------------------------------------------
 
 def square_filter_5x5(row): 
     
+    '''
     # The only input the function accepts is the row where the filter mask is been applied (as we did in the assignments).       # Then, all the additional information must be initialized previously and belongs to the global memory. 
     # As this function will only be done when the filter has been checked to be 5x5, it will be assumed from the beggining.
-    
+    '''
     
     # Global memory recalling 
     global image
@@ -163,12 +164,13 @@ def square_filter_5x5(row):
     
     # Creation of the rows that must be taken into account, they are 5 as the filter is 5x5 (p2row, prow, srow, nrow, n2row)
     srow=image[row,:,:]
+    
     if ( row>0 ):
             prow=image[row-1,:,:]
     else:
             prow=image[row,:,:]
                         
-    if ( row>1)
+    if ( row>1):
             p2row=image[row-2,:,:]
     else:
             p2row=prow 
@@ -204,8 +206,8 @@ def square_filter_5x5(row):
         
     frow[0,:]= frow[2,:]
     frow[1,:]= frow[2,:]
-    frow[cols-1,:]= frow[cols-2,:]
-    frow[cols,:]= frow[cols-2,:]
+    frow[cols-2,:]= frow[cols-3,:]
+    frow[cols-1,:]= frow[cols-3,:]
     
 ''' Need to be checked if the names are correct for this last part, the one with the global memories '''
 
@@ -213,7 +215,7 @@ def square_filter_5x5(row):
     with shared_space.get_lock():                   
         #while we are in this code block no ones, except this execution thread, can write in the shared memory 
             shared_matrix[row,:,:]=frow
-    return    
+      
           
         
         
@@ -229,16 +231,97 @@ def square_filter_5x5(row):
                         nrow[i,j]*my_filter[2,3] + n2row[i,j]*my_filter[2,4])
                 temp4= (p2row[i+1,j]*my_filter[3,0] + prow[i+1,j]*my_filter[3,1]+ srow[i+1,j]*my_filter[3,2] + 
                         nrow[i+1,j]*my_filter[3,3] + n2row[i+1,j]*my_filter[3,4])
-'''                
-                
-                
-                
-                
-                
-                
-                frow[i,j]= 
-    
-    
-    
+'''                  
+    return  
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+
+def row_filter_1x3(row) 
+
+    '''
+    # The only input the function accepts is the row where the filter mask is been applied (as we did in the assignments).       # Then, all the additional information must be initialized previously and belongs to the global memory. 
+    # As this function will only be done when the filter has been checked to be 1x3, it will be assumed from the beggining.
+    '''
+    
+    # Global memory recalling 
+    global image
+    global my_filter
+    global shared_space
+    
+    (rows,cols,depth) = image.shape 
+    size= len(my_filter)                   # !!! It shall be a single 1x3 vector
+    
+    # Initialization of the result vector and the row we are filtering:  
+    
+    srow=image[row,:,:] 
+    frow= np.zeros((cols,depth))
+    
+    # Application of the filter: 
+    
+        #First we will fulfill the general case: 
+        
+    for j in range(depth):
+        for i in range(1,cols-1): 
+            frow[i,j]= dp(srow(i-1:i+2,j), my_filter) 
+            
+        #And now we will fulfill the two borders with the most-adjacent value 
+        
+    frow[0,:]= frow[1,:]
+    frow[cols-1,:]= frow[cols-2,:] 
+    
+''' Need to be checked if the names are correct for this last part, the one with the global memories '''  
+
+    # And now we will unlock the shared memory in order to rewrite the row in its place: 
+    with shared_space.get_lock():                   
+        #while we are in this code block no ones, except this execution thread, can write in the shared memory 
+            shared_matrix[row,:,:]=frow
+            
+    return 
+    
+
+# ---------------------------------------------------------------------------------------------------------------------
+
+def row_filter_1x5(row):          # Adaptation of the 1x3 
+
+    '''
+    # The only input the function accepts is the row where the filter mask is been applied (as we did in the assignments).       # Then, all the additional information must be initialized previously and belongs to the global memory. 
+    # As this function will only be done when the filter has been checked to be 1x5, it will be assumed from the beggining.
+    '''
+    
+    # Global memory recalling 
+    global image
+    global my_filter
+    global shared_space
+    
+    (rows,cols,depth) = image.shape 
+    size= len(my_filter)                   # !!! It shall be a single 1x5 vector
+    
+    # Initialization of the result vector and the row we are filtering:  
+    
+    srow=image[row,:,:] 
+    frow= np.zeros((cols,depth))
+    
+    # Application of the filter: 
+    
+        #First we will fulfill the general case: 
+        
+    for j in range(depth):
+        for i in range(2,cols-2): 
+            frow[i,j]= dp(srow(i-2:i+3,j), my_filter) 
+            
+        #And now we will fulfill the two borders with the most-adjacent value 
+        
+    frow[0,:]= frow[2,:]
+    frow[1,:]= frow[2,:]
+    frow[cols-2,:]= frow[cols-3,:]
+    frow[cols-1,:]= frow[cols-3,:]
+''' Need to be checked if the names are correct for this last part, the one with the global memories '''  
+
+    # And now we will unlock the shared memory in order to rewrite the row in its place: 
+    with shared_space.get_lock():                   
+        #while we are in this code block no ones, except this execution thread, can write in the shared memory 
+            shared_matrix[row,:,:]=frow
+            
+    return 
+        
