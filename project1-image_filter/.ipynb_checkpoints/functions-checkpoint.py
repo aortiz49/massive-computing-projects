@@ -324,4 +324,81 @@ def row_filter_1x5(row):          # Adaptation of the 1x3
             shared_matrix[row,:,:]=frow
             
     return 
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+
+
+def square_filter_3x3(row): 
+    
+    '''
+    # The only input the function accepts is the row where the filter mask is been applied (as we did in the assignments).       # Then, all the additional information must be initialized previously and belongs to the global memory. 
+    # As this function will only be done when the filter has been checked to be 3x3, it will be assumed from the beggining.
+    '''
+    
+    # Global memory recalling 
+    global image
+    global my_filter
+    global shared_space
+    
+    (rows,cols,depth) = image.shape
+    
+    # Creation of the rows that must be taken into account:
+    srow=image[row,:,:]
+    
+    if ( row>0 ):
+            prow=image[row-1,:,:]
+    else:
+            prow=image[row,:,:]
+                        
+    if: (row == (rows-1)):
+            nrow = srow
+    else: 
+            nrow=image[row+1,:,:]
+                
+    # Initialization of the result vector: frow 
+    frow= np.zeros((cols,depth))
+    
+    # Implementation of the filter itself : 
+        
+        # First the main body of the filter is carried out:
+        
+    for j in range(depth): 
+        for i in range(1,cols-1):
+            frow[i,j]= (dp(prow[i-1:i+2,j]),my_filter[0,:]+
+                        dp(srow[i-1:i+2,j]),my_filter[1,:]+
+                        dp(nrow[i-1:i+2,j]),my_filter[2,:]+
+                        )
+                
+        # Now we will copy the first one of the columns computed and the last ones 
+        # (in this case the third one and the n-cols-3) and copy it in the boundary positions 
+        
+    frow[0,:]= frow[2,:]
+    frow[1,:]= frow[2,:]
+        
+''' Need to be checked if the names are correct for this last part, the one with the global memories '''
+
+    # And now we will unlock the shared memory in order to rewrite the row in its place: 
+    with shared_space.get_lock():                   
+        #while we are in this code block no ones, except this execution thread, can write in the shared memory 
+            shared_matrix[row,:,:]=frow
+      
+          
+        
+        
+'''      This could be an alternative way without the dot product, but the other one is much more elegant.
+
+        for j in range(depth): 
+            for i in range(2,cols-2): 
+                temp1= (p2row[i-2,j]*my_filter[0,0] + prow[i-2,j]*my_filter[0,1]+ srow[i-2,j]*my_filter[0,2] + 
+                        nrow[i-2,j]*my_filter[0,3] + n2row[i-2,j]*my_filter[0,4])
+                temp2= (p2row[i-1,j]*my_filter[1,0] + prow[i-1,j]*my_filter[1,1]+ srow[i-1,j]*my_filter[1,2] + 
+                        nrow[i-1,j]*my_filter[1,3] + n2row[i-1,j]*my_filter[1,4])
+                temp3= (p2row[i,j]*my_filter[2,0] + prow[i,j]*my_filter[2,1]+ srow[i,j]*my_filter[2,2] + 
+                        nrow[i,j]*my_filter[2,3] + n2row[i,j]*my_filter[2,4])
+                temp4= (p2row[i+1,j]*my_filter[3,0] + prow[i+1,j]*my_filter[3,1]+ srow[i+1,j]*my_filter[3,2] + 
+                        nrow[i+1,j]*my_filter[3,3] + n2row[i+1,j]*my_filter[3,4])
+'''                  
+    return  
+
         
