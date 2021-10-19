@@ -78,8 +78,8 @@ def filter_image(row_index):
         # the left border will take calculate the convolution between the first pixel and the kernel. 
         # [x| | | | | ] since it is the first column, we have to replicate the first pexel and extend it to the left
 
-        # normalize the 
-        frow[0,d] = int((p_row[0,d]*1.0+p_row[0,d]*1.0+p_row[1,d]*1.0)+
+        # normalize the pixel and store in result var
+        frow[0,d] = int((p_row[k-off,d]*1.0+p_row[k-off+1,d]*1.0+p_row[1,d]*1.0)+
                      (p_row[0,d]*1.0+c_row[0,d]*1.0+c_row[1,d]*1.0)+
                      (n_row[0,d]*1.0+n_row[0,d]*1.0+n_row[1,d]*1.0)/9.0)
 
