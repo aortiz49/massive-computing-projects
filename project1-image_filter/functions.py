@@ -5,17 +5,17 @@ import numpy as np
 
 
 # this function declares a global variable names matrix_2 and sets this matrix equal to the matrix that enters by the parameter and prints its dimmensions
-def init_second(shape,my_matrix2):
+def init_second(shape, my_matrix2):
     global matrix_2
-    matrix_2=my_matrix2
+    matrix_2 = my_matrix2
     print(matrix_2.shape)
 
 
-def init_globalimage(img,filt):
+def init_globalimage(img, filt):
     global image
     global my_filter
-    image=img
-    my_filter=filt
+    image = img
+    my_filter = filt
 
 def parallel_matmul(v):
     # v: is the input row
@@ -24,14 +24,14 @@ def parallel_matmul(v):
     #here we calculate the shape of the second matrix, to generate the resultant row
     matrix_2 # we will uses the global matrix
     
-    (rows,columns)=matrix_2.shape
+    (rows, columns) = matrix_2.shape
     
     #we allocate the final vector of size the number of columns of matrix_2
-    d=np.zeros(columns)
+    d = np.zeros(columns)
     
     #we calculate the dot product between vector v and each column of matrix_2
     for i in range(columns):
-        d[i] = np.dot(v,matrix_2[:,i])
+        d[i] = np.dot(v, matrix_2[:, i])
     
     #returns the final vector d
     return d
@@ -43,7 +43,7 @@ def filter_image3x3(row_index):
     row_index: the index of the image row to filter
     '''
 
-    # image is the global memory array. This is a 3d numpy array image[a,b,c] in which a is the row, b is the layer, and c is the value.
+    # image is the global memory array. This is a 3d numpy array image[a, b, c] in which a is the row, b is the layer, and c is the value.
 
     global image
 
@@ -51,21 +51,21 @@ def filter_image3x3(row_index):
     global my_filter
     
     # the shape of the gloabl image variable
-    (rows,cols,depth) = image.shape 
+    (rows, cols, depth) = image.shape 
 
     # obtains the current row of the image
-    c_row = image[r,:,:]
+    c_row = image[r, :, :]
 
     # edge cases
 
     # sets the previous row to the current row if we are in the first row or the row index is negative
-    p_row = image[r - 1,:,:] if row_index > 0 else image[r,:,:]
+    p_row = image[r - 1, :, :] if row_index > 0 else image[r, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r,:,:] if row_index == (rows - 1) else image[r + 1,:,:]
+    n_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 1, :, :]
 
     # defines the result vector and sets each value to 0
-    res_row = np.zeros((cols,depth),dtype=np.uint8)
+    res_row = np.zeros((cols, depth), dtype = np.uint8)
 
     # for each layer in the image
     for d in range(depth):
@@ -79,22 +79,22 @@ def filter_image3x3(row_index):
         # [x| | | | | ] since it is the first column, we have to replicate the first pixel and extend it to the left
 
         # normalize the pixel and store in result var
-        res_row[0,d] = int((p_row[0,d]*1.0+p_row[0,d]*1.0+p_row[1,d]*1.0)+
-                     (c_row[0,d]*1.0+c_row[0,d]*1.0+c_row[1,d]*1.0)+
-                     (n_row[0,d]*1.0+n_row[0,d]*1.0+n_row[1,d]*1.0)/9.0)
+        res_row[0, d] = int((p_row[0, d]*1.0+p_row[0, d]*1.0+p_row[1, d]*1.0)+
+                     (c_row[0, d]*1.0+c_row[0, d]*1.0+c_row[1, d]*1.0)+
+                     (n_row[0, d]*1.0+n_row[0, d]*1.0+n_row[1, d]*1.0)/9.0)
 
         #calculate the middle pixels
-        for i in range (1,cols-1):
+        for i in range (1, cols-1):
             new_pixel = 0.0
             for j in range(3):
                 pixel_c = i+j-1
-                new_pixel +=  prow[pixel_c,d]*1.0+srow[pixel_c,d]*1.0+nrow[pixel_c,d]*1.0
-            res_row[i,d] = int(new_pixel/9.0)  
+                new_pixel += prow[pixel_c, d]*1.0+srow[pixel_c, d]*1.0+nrow[pixel_c, d]*1.0
+            res_row[i, d] = int(new_pixel/9.0)  
 
         # calculate the filtered pixel for the last column
-        res_row[cols-1,d] = int((p_row[cols-2,d]*1.0+p_row[cols-1,d]*1.0+p_row[cols-1,d]*1.0)+
-                     (c_row[cols-2,d]*1.0+c_row[cols-1,d]*1.0+c_row[cols-1,d]*1.0)+
-                     (n_row[cols-2,d]*1.0+n_row[cols-1,d]*1.0+n_row[cols-1,d]*1.0)/9.0)
+        res_row[cols-1, d] = int((p_row[cols-2, d]*1.0+p_row[cols-1, d]*1.0+p_row[cols-1, d]*1.0)+
+                     (c_row[cols-2, d]*1.0+c_row[cols-1, d]*1.0+c_row[cols-1, d]*1.0)+
+                     (n_row[cols-2, d]*1.0+n_row[cols-1, d]*1.0+n_row[cols-1, d]*1.0)/9.0)
 
     #return the filtered row
     return frow
@@ -105,7 +105,7 @@ def filter_image3x1(row_index):
     row_index: the index of the image row to filter
     '''
 
-    # image is the global memory array. This is a 3d numpy array image[a,b,c] in which a is the row, b is the layer, and c is the value.
+    # image is the global memory array. This is a 3d numpy array image[a, b, c] in which a is the row, b is the layer, and c is the value.
 
     global image
 
@@ -113,21 +113,21 @@ def filter_image3x1(row_index):
     global my_filter
     
     # the shape of the gloabl image variable
-    (rows,cols,depth) = image.shape 
+    (rows, cols, depth) = image.shape 
 
     # obtains the current row of the image
-    c_row = image[r,:,:]
+    c_row = image[r, :, :]
 
     # edge cases
 
     # sets the previous row to the current row if we are in the first row or the row index is negative
-    p_row = image[r - 1,:,:] if row_index > 0 else image[r,:,:]
+    p_row = image[r - 1, :, :] if row_index > 0 else image[r, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r,:,:] if row_index == (rows - 1) else image[r + 1,:,:]
+    n_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 1, :, :]
 
     # defines the result vector and sets each value to 0
-    res_row = np.zeros((cols,depth),dtype=np.uint8)
+    res_row = np.zeros((cols, depth), dtype = np.uint8)
 
     # for each layer in the image
     for d in range(depth):
@@ -136,7 +136,7 @@ def filter_image3x1(row_index):
 
         # for each pixel in the row
         for i in range(cols - 1):
-            res_row[i,d] = int((p_row[i,d]*1.0 + c_row[i,d]*1.0 + n_row[i,d]*1.0)/3.0)
+            res_row[i, d] = int((p_row[i, d]*1.0 + c_row[i, d]*1.0 + n_row[i, d]*1.0)/3.0)
 
     #return the filtered row
     return res_row    
@@ -147,7 +147,7 @@ def filter_image5x1(row_index):
     row_index: the index of the image row to filter
     '''
 
-    # image is the global memory array. This is a 3d numpy array image[a,b,c] in which a is the row, b is the layer, and c is the value.
+    # image is the global memory array. This is a 3d numpy array image[a, b, c] in which a is the row, b is the layer, and c is the value.
 
     global image
 
@@ -155,27 +155,27 @@ def filter_image5x1(row_index):
     global my_filter
     
     # the shape of the gloabl image variable
-    (rows,cols,depth) = image.shape 
+    (rows, cols, depth) = image.shape 
 
     # obtains the current row of the image
-    c_row = image[r,:,:]
+    c_row = image[r, :, :]
 
     # edge cases
 
     # sets the previous row to the current row if we are in the first row or the row index is negative
-    p_row = image[r - 1,:,:] if row_index > 0 else image[r,:,:]
+    p_row = image[r - 1, :, :] if row_index > 0 else image[r, :, :]
 
     # sets the previous, previous row to the current row if we are in the first row or the row index is negative
-    pp_row = image[r - 2,:,:] if row_index > 0 else image[r,:,:]
+    pp_row = image[r - 2, :, :] if row_index > 0 else image[r, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r,:,:] if row_index == (rows - 1) else image[r + 1,:,:]
+    n_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 1, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    nn_row = image[r,:,:] if row_index == (rows - 1) else image[r + 2,:,:]
+    nn_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 2, :, :]
 
     # defines the result vector and sets each value to 0
-    res_row = np.zeros((cols,depth),dtype=np.uint8)
+    res_row = np.zeros((cols, depth), dtype = np.uint8)
 
     # for each layer in the image
     for d in range(depth):
@@ -184,7 +184,7 @@ def filter_image5x1(row_index):
 
         # for each pixel in the row
         for i in range(cols - 1):
-            res_row[i,d] = int((pp_row[i,d]*1.0 + p_row[i,d]*1.0 + c_row[i,d]*1.0 + n_row[i,d]*1.0+nn_row[i,d]*1.0)/5.0)
+            res_row[i, d] = int((pp_row[i, d]*1.0 + p_row[i, d]*1.0 + c_row[i, d]*1.0 + n_row[i, d]*1.0+nn_row[i, d]*1.0)/5.0)
 
     #return the filtered row
     return res_row        
@@ -193,11 +193,11 @@ def filter_image5x1(row_index):
 def tonumpyarray(mp_arr):
     #mp_array is a shared memory array with lock
     
-    return np.frombuffer(mp_arr.get_obj(),dtype=np.uint8)
+    return np.frombuffer(mp_arr.get_obj(), dtype = np.uint8)
 
 #This function initialize the global shared memory data
 
-def pool_init(shared_array_,srcimg, imgfilter):
+def pool_init(shared_array_, srcimg, imgfilter):
     #shared_array_: is the shared read/write data, with lock. It is a vector (because the shared memory should be allocated as a vector
     #srcimg: is the original image
     #imgfilter is the filter which will be applied to the image and stor the results in the shared memory array
@@ -212,8 +212,8 @@ def pool_init(shared_array_,srcimg, imgfilter):
     global my_filter
     
     #here, we initialize the global read only memory data
-    image=srcimg
-    my_filter=imgfilter
+    image = srcimg
+    my_filter = imgfilter
     size = image.shape
     
     #Assign the shared memory  to the local reference
@@ -229,7 +229,7 @@ def parallel_shared_imagecopy(row):
     # with this instruction we lock the shared memory space, avoidin other parallel processes tries to write on it
     with shared_space.get_lock():
         #while we are in this code block no ones, except this execution thread, can write in the shared memory
-        shared_matrix[row,:,:]=image[row,:,:]
+        shared_matrix[row, :, :] = image[row, :, :]
     return
 
 
