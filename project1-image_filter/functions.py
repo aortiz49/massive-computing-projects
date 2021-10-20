@@ -172,7 +172,7 @@ def filter_image5x1(r):
     n_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 1, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    nn_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 2, :, :]
+    nn_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 1, :, :]
 
     # defines the result vector and sets each value to 0
     res_row = np.zeros((cols, depth), dtype = np.uint8)
