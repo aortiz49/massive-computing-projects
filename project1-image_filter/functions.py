@@ -37,7 +37,7 @@ def parallel_matmul(v):
     return d
 
 
-def filter_image(row_index):
+def filter_image3x3(row_index):
     '''
     This is a box filter algorithm applied to an image
     row_index: the index of the image row to filter
@@ -62,28 +62,132 @@ def filter_image(row_index):
     p_row = image[r - 1,:,:] if row_index > 0 else image[r,:,:]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r + 1,:,:] if row_index == (rows - 1) else image[r,:,:]
+    n_row = image[r,:,:] if row_index == (rows - 1) else image[r + 1,:,:]
 
     # defines the result vector and sets each value to 0
     res_row = np.zeros((cols,depth),dtype=np.uint8)
 
     # for each layer in the image
     for d in range(depth):
-        # new pixel to store the result of the convolution  
+        # new pixel to store the result of the dot product  
         new_pixel = 0.0
 
-        # since our kernel is a 3x3 matrix of just ones, our convolution calculations will just multiple "1" to each 
+        # since our kernel is a 3x3 matrix of just ones, our dot product calculations will just multiple "1" to each 
         # pixel and add the result. 
 
-        # the left border will take calculate the convolution between the first pixel and the kernel. 
-        # [x| | | | | ] since it is the first column, we have to replicate the first pexel and extend it to the left
+        # the left border will take calculate the dot product between the first pixel and the kernel. 
+        # [x| | | | | ] since it is the first column, we have to replicate the first pixel and extend it to the left
 
         # normalize the pixel and store in result var
-        frow[0,d] = int((p_row[k-off,d]*1.0+p_row[k-off+1,d]*1.0+p_row[1,d]*1.0)+
-                     (p_row[0,d]*1.0+c_row[0,d]*1.0+c_row[1,d]*1.0)+
+        res_row[0,d] = int((p_row[0,d]*1.0+p_row[0,d]*1.0+p_row[1,d]*1.0)+
+                     (c_row[0,d]*1.0+c_row[0,d]*1.0+c_row[1,d]*1.0)+
                      (n_row[0,d]*1.0+n_row[0,d]*1.0+n_row[1,d]*1.0)/9.0)
 
+        #calculate the middle pixels
+        for i in range (1,cols-1):
+            new_pixel = 0.0
+            for j in range(3):
+                pixel_c = i+j-1
+                new_pixel +=  prow[pixel_c,d]*1.0+srow[pixel_c,d]*1.0+nrow[pixel_c,d]*1.0
+            res_row[i,d] = int(new_pixel/9.0)  
 
+        # calculate the filtered pixel for the last column
+        res_row[cols-1,d] = int((p_row[cols-2,d]*1.0+p_row[cols-1,d]*1.0+p_row[cols-1,d]*1.0)+
+                     (c_row[cols-2,d]*1.0+c_row[cols-1,d]*1.0+c_row[cols-1,d]*1.0)+
+                     (n_row[cols-2,d]*1.0+n_row[cols-1,d]*1.0+n_row[cols-1,d]*1.0)/9.0)
+
+    #return the filtered row
+    return frow
+
+def filter_image3x1(row_index):
+    '''
+    This is a box filter algorithm applied to an image
+    row_index: the index of the image row to filter
+    '''
+
+    # image is the global memory array. This is a 3d numpy array image[a,b,c] in which a is the row, b is the layer, and c is the value.
+
+    global image
+
+    # my_filter is the kernel that will be applied to the image
+    global my_filter
+    
+    # the shape of the gloabl image variable
+    (rows,cols,depth) = image.shape 
+
+    # obtains the current row of the image
+    c_row = image[r,:,:]
+
+    # edge cases
+
+    # sets the previous row to the current row if we are in the first row or the row index is negative
+    p_row = image[r - 1,:,:] if row_index > 0 else image[r,:,:]
+
+    # sets the next row to the current row if we are in the last row 
+    n_row = image[r,:,:] if row_index == (rows - 1) else image[r + 1,:,:]
+
+    # defines the result vector and sets each value to 0
+    res_row = np.zeros((cols,depth),dtype=np.uint8)
+
+    # for each layer in the image
+    for d in range(depth):
+        # new pixel to store the result of the dot product  
+        new_pixel = 0.0
+
+        # for each pixel in the row
+        for i in range(cols - 1):
+            res_row[i,d] = int((p_row[i,d]*1.0 + c_row[i,d]*1.0 + n_row[i,d]*1.0)/3.0)
+
+    #return the filtered row
+    return res_row    
+
+def filter_image5x1(row_index):
+    '''
+    This is a box filter algorithm applied to an image
+    row_index: the index of the image row to filter
+    '''
+
+    # image is the global memory array. This is a 3d numpy array image[a,b,c] in which a is the row, b is the layer, and c is the value.
+
+    global image
+
+    # my_filter is the kernel that will be applied to the image
+    global my_filter
+    
+    # the shape of the gloabl image variable
+    (rows,cols,depth) = image.shape 
+
+    # obtains the current row of the image
+    c_row = image[r,:,:]
+
+    # edge cases
+
+    # sets the previous row to the current row if we are in the first row or the row index is negative
+    p_row = image[r - 1,:,:] if row_index > 0 else image[r,:,:]
+
+    # sets the previous, previous row to the current row if we are in the first row or the row index is negative
+    pp_row = image[r - 2,:,:] if row_index > 0 else image[r,:,:]
+
+    # sets the next row to the current row if we are in the last row 
+    n_row = image[r,:,:] if row_index == (rows - 1) else image[r + 1,:,:]
+
+    # sets the next row to the current row if we are in the last row 
+    nn_row = image[r,:,:] if row_index == (rows - 1) else image[r + 2,:,:]
+
+    # defines the result vector and sets each value to 0
+    res_row = np.zeros((cols,depth),dtype=np.uint8)
+
+    # for each layer in the image
+    for d in range(depth):
+        # new pixel to store the result of the dot product  
+        new_pixel = 0.0
+
+        # for each pixel in the row
+        for i in range(cols - 1):
+            res_row[i,d] = int((pp_row[i,d]*1.0 + p_row[i,d]*1.0 + c_row[i,d]*1.0 + n_row[i,d]*1.0+nn_row[i,d]*1.0)/5.0)
+
+    #return the filtered row
+    return res_row        
 
 #This functions just create a numpy array structure of type unsigned int8, with the memory used by our global r/w shared memory
 def tonumpyarray(mp_arr):
