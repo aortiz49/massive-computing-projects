@@ -37,7 +37,7 @@ def parallel_matmul(v):
     return d
 
 
-def filter_image3x3(row_index):
+def filter_image3x3(r):
     '''
     This is a box filter algorithm applied to an image
     row_index: the index of the image row to filter
@@ -59,10 +59,10 @@ def filter_image3x3(row_index):
     # edge cases
 
     # sets the previous row to the current row if we are in the first row or the row index is negative
-    p_row = image[r - 1, :, :] if row_index > 0 else image[r, :, :]
+    p_row = image[r - 1, :, :] if r > 0 else image[r, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 1, :, :]
+    n_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 1, :, :]
 
     # defines the result vector and sets each value to 0
     res_row = np.zeros((cols, depth), dtype = np.uint8)
@@ -88,7 +88,7 @@ def filter_image3x3(row_index):
             new_pixel = 0.0
             for j in range(3):
                 pixel_c = i+j-1
-                new_pixel += prow[pixel_c, d]*1.0+srow[pixel_c, d]*1.0+nrow[pixel_c, d]*1.0
+                new_pixel += p_row[pixel_c, d]*1.0+c_row[pixel_c, d]*1.0+n_row[pixel_c, d]*1.0
             res_row[i, d] = int(new_pixel/9.0)  
 
         # calculate the filtered pixel for the last column
@@ -97,9 +97,9 @@ def filter_image3x3(row_index):
                      (n_row[cols-2, d]*1.0+n_row[cols-1, d]*1.0+n_row[cols-1, d]*1.0)/9.0)
 
     #return the filtered row
-    return frow
+    return res_row
 
-def filter_image3x1(row_index):
+def filter_image3x1(r):
     '''
     This is a box filter algorithm applied to an image
     row_index: the index of the image row to filter
@@ -121,10 +121,10 @@ def filter_image3x1(row_index):
     # edge cases
 
     # sets the previous row to the current row if we are in the first row or the row index is negative
-    p_row = image[r - 1, :, :] if row_index > 0 else image[r, :, :]
+    p_row = image[r - 1, :, :] if r > 0 else image[r, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 1, :, :]
+    n_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 1, :, :]
 
     # defines the result vector and sets each value to 0
     res_row = np.zeros((cols, depth), dtype = np.uint8)
@@ -141,7 +141,7 @@ def filter_image3x1(row_index):
     #return the filtered row
     return res_row    
 
-def filter_image5x1(row_index):
+def filter_image5x1(r):
     '''
     This is a box filter algorithm applied to an image
     row_index: the index of the image row to filter
@@ -163,16 +163,16 @@ def filter_image5x1(row_index):
     # edge cases
 
     # sets the previous row to the current row if we are in the first row or the row index is negative
-    p_row = image[r - 1, :, :] if row_index > 0 else image[r, :, :]
+    p_row = image[r - 1, :, :] if r > 0 else image[r, :, :]
 
     # sets the previous, previous row to the current row if we are in the first row or the row index is negative
-    pp_row = image[r - 2, :, :] if row_index > 0 else image[r, :, :]
+    pp_row = image[r - 2, :, :] if r > 0 else image[r, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    n_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 1, :, :]
+    n_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 1, :, :]
 
     # sets the next row to the current row if we are in the last row 
-    nn_row = image[r, :, :] if row_index  ==  (rows - 1) else image[r + 2, :, :]
+    nn_row = image[r, :, :] if r  ==  (rows - 1) else image[r + 2, :, :]
 
     # defines the result vector and sets each value to 0
     res_row = np.zeros((cols, depth), dtype = np.uint8)
