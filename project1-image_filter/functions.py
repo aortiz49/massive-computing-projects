@@ -385,4 +385,147 @@ def square_filter_3x3(row):
          
     return  
 
+
+
+# ---------------------------------------------------------------------------------------------------------------------
+
+'''
+Here we will define the first approach for the combined functions squared filter and row filters 
+'''
+
+def squared_filter(row): 
+    
+    # Global memory recalling 
+    global image
+    global my_filter
+    global shared_space
+    
+    (rows,cols,depth) = image.shape
+    size= my_filter.shape[0]
+    
+    # Creation of the rows that must be taken into account for a 3x3:
+    srow=image[row,:,:]
+    
+    if ( row>0 ):
+            prow=image[row-1,:,:]
+    else:
+            prow=image[row,:,:]
+                        
+    if: (row == (rows-1)):
+            nrow = srow
+    else: 
+            nrow=image[row+1,:,:]
+            
+    # Now we will define the extra rows in the case the filter is a 5x5 
+    
+    if size==5: 
         
+        if (row>1):
+            p2row=image[row-2,:,:]
+        else:
+            p2row=prow 
+            
+        if (row >= (rows-2)):
+            n2row= nrow
+        else: 
+            n2row= image[row+2,:,:]
+    
+                
+    # Initialization of the result vector: frow 
+    frow= np.zeros((cols,depth))
+    
+    # Implementation of the filter itself : 
+    
+    if size==3: 
+        # First the main body of the filter is carried out (the one of a 3x3):
+        
+        for j in range(depth): 
+            for i in range(1,cols-1):
+                frow[i,j]= (dp(prow[i-1:i+2,j]),my_filter[0,:]+
+                            dp(srow[i-1:i+2,j]),my_filter[1,:]+
+                            dp(nrow[i-1:i+2,j]),my_filter[2,:]+
+                            )
+                
+        # Now we will copy the first one of the columns computed and the last ones 
+        # (in this case the third one and the n-cols-3) and copy it in the boundary positions 
+        
+        frow[0,:]= frow[2,:]
+        frow[1,:]= frow[2,:]
+        
+    else:                                                # Here we are defining the 5x5 case 
+        for j in range(depth): 
+            for i in range(2,cols-2):
+                frow[i,j]= (dp(p2row[i-2:i+3,j]),my_filter[0,:]+
+                            dp(prow[i-2:i+3,j]),my_filter[1,:]+
+                            dp(srow[i-2:i+3,j]),my_filter[2,:]+
+                            dp(nrow[i-2:i+3,j]),my_filter[3,:]+
+                            dp(n2row[i-2:i+3,j]),my_filter[4,:]+
+                            )
+                
+        # And now the boundary positions: 
+        
+        frow[0,:]= frow[2,:]
+        frow[1,:]= frow[2,:]
+        frow[cols-2,:]= frow[cols-3,:]
+        frow[cols-1,:]= frow[cols-3,:]
+        
+''' Need to be checked if the names are correct for this last part, the one with the global memories '''
+
+    # And now we will unlock the shared memory in order to rewrite the row in its place: 
+    with shared_space.get_lock():                   
+        #while we are in this code block no ones, except this execution thread, can write in the shared memory 
+            shared_matrix[row,:,:]=frow
+         
+    return  
+
+
+# ------------------------------------------------------------------------------------------------
+
+def rowed_filter(row):
+     # Global memory recalling 
+    global image
+    global my_filter
+    global shared_space
+    
+    (rows,cols,depth) = image.shape 
+    size= len(my_filter)                   # !!! It shall be a single 1x5 vector
+    
+    # Initialization of the result vector and the row we are filtering:  
+    
+    srow=image[row,:,:] 
+    frow= np.zeros((cols,depth))
+    
+    # Application of the filter: 
+    
+        #First we will fulfill the general case: 
+    if size==5:    
+        for j in range(depth):
+            for i in range(2,cols-2): 
+                frow[i,j]= dp(srow(i-2:i+3,j), my_filter) 
+            
+            #And now we will fulfill the two borders with the most-adjacent value 
+        
+        frow[0,:]= frow[2,:]
+        frow[1,:]= frow[2,:]
+        frow[cols-2,:]= frow[cols-3,:]
+        frow[cols-1,:]= frow[cols-3,:]
+        
+    else: 
+         for j in range(depth):
+            for i in range(1,cols-1): 
+                frow[i,j]= dp(srow(i-1:i+2,j), my_filter) 
+            
+            #And now we will fulfill the two borders with the most-adjacent value 
+        
+        frow[0,:]= frow[1,:]
+        frow[cols-1,:]= frow[cols-2,:]
+        
+''' Need to be checked if the names are correct for this last part, the one with the global memories '''  
+
+    # And now we will unlock the shared memory in order to rewrite the row in its place: 
+    with shared_space.get_lock():                   
+        #while we are in this code block no ones, except this execution thread, can write in the shared memory 
+            shared_matrix[row,:,:]=frow
+           
+    return 
+
