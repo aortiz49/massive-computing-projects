@@ -1,14 +1,8 @@
+import pylab
 from multiprocessing.sharedctypes import Value, Array, RawArray
 from multiprocessing import Process, Lock
 import ctypes
 import numpy as np
-
-
-# this function declares a global variable names matrix_2 and sets this matrix equal to the matrix that enters by the parameter and prints its dimmensions
-def init_second(shape, my_matrix2):
-    global matrix_2
-    matrix_2 = my_matrix2
-    print(matrix_2.shape)
 
 
 def init_globalimage(img, filt):
@@ -17,24 +11,24 @@ def init_globalimage(img, filt):
     image = img
     my_filter = filt
 
-def parallel_matmul(v):
-    # v: is the input row
-    # matrix_2: is the second matrix, shared by memory
-    
-    #here we calculate the shape of the second matrix, to generate the resultant row
-    matrix_2 # we will uses the global matrix
-    
-    (rows, columns) = matrix_2.shape
-    
-    #we allocate the final vector of size the number of columns of matrix_2
-    d = np.zeros(columns)
-    
-    #we calculate the dot product between vector v and each column of matrix_2
-    for i in range(columns):
-        d[i] = np.dot(v, matrix_2[:, i])
-    
-    #returns the final vector d
-    return d
+
+def image_filter(image,filter,numprocessors,filtered_image):
+    init_globalimage(image, filter) #initialize global image based in filter specified in param
+
+    global my_filter
+    global shared_space
+
+    # size contains the dimmensions of the filter
+    size = my_filter.shape
+    print(size)
+
+   
+
+
+
+
+
+
 
 
 def filter_image3x3(r):
@@ -43,13 +37,6 @@ def filter_image3x3(r):
     row_index: the index of the image row to filter
     '''
 
-    # image is the global memory array. This is a 3d numpy array image[a, b, c] in which a is the row, b is the layer, and c is the value.
-
-    global image
-
-    # my_filter is the kernel that will be applied to the image
-    global my_filter
-    
     # the shape of the gloabl image variable
     (rows, cols, depth) = image.shape 
 
@@ -231,7 +218,4 @@ def parallel_shared_imagecopy(row):
         #while we are in this code block no ones, except this execution thread, can write in the shared memory
         shared_matrix[row, :, :] = image[row, :, :]
     return
-
-
-
 
