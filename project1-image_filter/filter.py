@@ -49,22 +49,22 @@ my.image_filter(image,image_filter1,NUMCORES,filtered_image1)
 my.image_filter(image,image_filter2,NUMCORES,filtered_image2)
 
 print('hey')
-# # executes the parallel filtering processes
-# def filters_execution(image,filter1,filter2,numprocessors,filtered_image1,filtered_image2):
-#     # creates a lock to handle memory access
-#     lock = mp.Lock()
-#
-#     # define and start the processes
-#     p1 = mp.Process(target=my.image_filter,args=(image,filter1,numprocessors,filtered_image1))
-#     p2 = mp.Process(target=my.image_filter,args=(image,filter2,numprocessors,filtered_image2))
-#
-#     p1.start()
-#     p2.start()
-#
-#     # wait until the processes have ended
-#     p1.join()
-#     p2.join()
-#
-#
-#
-# filters_execution(image1,filter1,filtered_image2,NUMCORES,filtered_image1,filtered_image2)
+executes the parallel filtering processes
+def filters_execution(image,filter1,filter2,numprocessors,filtered_image1,filtered_image2):
+    # creates a lock to handle memory access
+    lock = mp.Lock()
+
+    # define and start the processes
+    p1 = mp.Process(target=my.image_filter,args=(image,filter1,numprocessors,filtered_image1))
+    p2 = mp.Process(target=my.image_filter,args=(image,filter2,numprocessors,filtered_image2))
+
+    p1.start()
+    p2.start()
+
+    # wait until the processes have ended
+    p1.join()
+    p2.join()
+
+
+
+filters_execution(image1,filter1,filtered_image2,NUMCORES,filtered_image1,filtered_image2)
