@@ -15,18 +15,19 @@ def image_filter(p_image, p_filter, p_numprocessors, p_shared_space):
     # the pool function according to the dim of the filter: func.chosenfilter
 
     rows = range(p_image.shape[0])
-    if size[0] < size[1]:  # row filter
+
+    if len(size) == 1:  # rowed filter
         with mp.Pool(processes=p_numprocessors, initializer=pool_init,
                      initargs=[p_shared_space, p_image, p_filter]) as p:
             p.map(rowed_filter, rows)
-    elif size[0] == size[1]:  # square filter
-        with mp.Pool(processes=p_numprocessors, initializer=pool_init,
-                     initargs=[p_shared_space, p_image, p_filter]) as p:
-            p.map(squared_filter, rows)
-    else:  # column filter
+    elif size[0] > size[1]:  # columned filter
         with mp.Pool(processes=p_numprocessors, initializer=pool_init,
                      initargs=[p_shared_space, p_image, p_filter]) as p:
             p.map(columned_filter, rows)
+    else:  # square filter
+        with mp.Pool(processes=p_numprocessors, initializer=pool_init,
+                     initargs=[p_shared_space, p_image, p_filter]) as p:
+            p.map(squared_filter, rows)
 
 
 '''
@@ -40,7 +41,6 @@ def columned_filter(r):
     global my_filter
     global shared_space
 
-    print('here I am in the columned filter')
     # the shape of the gloabl image variable
     (rows, cols, depth) = image.shape
 
@@ -55,13 +55,24 @@ def columned_filter(r):
 
         # sets the previous, previous row to the current row if we are in the first row or the
         # row index is negative
-        pp_row = image[r - 2, :, :] if r > 0 else image[r, :, :]
+        pp_row = image[r - 2, :, :] if r > 1 else image[r, :, :]
+        if r > 1:
+            pp_row = image[r - 2, :, :]
+        elif r == 1:
+            pp_row = p_row
+        else:
+            pp_row = image[r, :, :]
 
         # sets the next row to the current row if we are in the last row 
         n_row = image[r, :, :] if r == (rows - 1) else image[r + 1, :, :]
 
-        # sets the next row to the current row if we are in the last row 
-        nn_row = image[r, :, :] if r == (rows - 1) else image[r + 1, :, :]
+        # sets the next row to the current row if we are in the last row
+        if r <= (rows - 3):
+            nn_row = image[r + 2, :, :]
+        elif r == (rows - 2):
+            nn_row = image[r + 1, :, :]
+        else:
+            nn_row = image[r, :, :]
 
         # defines the result vector and sets each value to 0
         res_row = np.zeros((cols, depth), dtype=np.uint8)
@@ -71,8 +82,9 @@ def columned_filter(r):
 
             # for each pixel in the row
             for i in range(cols - 1):
-                res_row[i, d] = int((pp_row[i, d] * my_filter[4] + p_row[i, d] * my_filter[3] + c_row[
-                    i, d] * my_filter[2] + n_row[i, d] * my_filter[1] + nn_row[i,] * my_filter[0]))
+                res_row[i, d] = int((pp_row[i, d] * my_filter[4] + p_row[i, d] * my_filter[3] +
+                                     c_row[i, d] * my_filter[2] + n_row[i, d] * my_filter[1] +
+                                     nn_row[i, d] * my_filter[0]))
 
             # res_row contains the filtered row that will be saved into the shared space
     elif (my_filter.shape[0] == 3):
@@ -82,7 +94,6 @@ def columned_filter(r):
         # sets the previous row to the current row if we are in the first row or the row index is negative
         p_row = image[r - 1, :, :] if r > 0 else image[r, :, :]
 
-        print('I AM HERE')
         # sets the next row to the current row if we are in the last row
         n_row = image[r, :, :] if r == (rows - 1) else image[r + 1, :, :]
 
@@ -106,7 +117,6 @@ def columned_filter(r):
     with shared_space.get_lock():
         # while we are in this code block no ones, except this execution thread, can write in the shared memory
         shared_matrix[r, :, :] = res_row
-        print('hello')
 
     # ----------------------------------------------------------------------------------------------------
 
@@ -163,8 +173,6 @@ def dp(x, y):
         r += float(x[i] * y[i])
 
     return r
-
-
 
 
 '''
@@ -290,7 +298,7 @@ def rowed_filter(row):
     else:
         for j in range(depth):
             for i in range(1, cols - 1):
-                frow[i,j]= int(dp(srow[i-1:i+2,j], my_filter))
+                frow[i, j] = int(dp(srow[i - 1:i + 2, j], my_filter))
             # And now we will fulfill the two borders with the most-adjacent value
 
         frow[0, :] = frow[1, :]

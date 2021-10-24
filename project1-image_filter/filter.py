@@ -62,7 +62,7 @@ shared_space2 = Array(ctypes.c_byte, data_buffer2_size)
 
 NUMCORES = mp.cpu_count()
 
-my.image_filter(image, filter2, NUMCORES, shared_space1)
+my.image_filter(image, filter3, NUMCORES, shared_space1)
 #my.image_filter(image, filter2, NUMCORES, shared_space2)
 
 print('hey')
@@ -88,4 +88,4 @@ def filters_execution(p_image, p_filter1, p_filter2, p_numprocessors, p_shared_s
     p2.join()
 
 
-filters_execution(image1, filter1, filter2, NUMCORES, shared_space1, shared_space2)
+filters_execution(image, filter1, filter2, NUMCORES, shared_space1, shared_space2)
