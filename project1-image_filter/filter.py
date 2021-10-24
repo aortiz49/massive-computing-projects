@@ -7,8 +7,8 @@ import functions as my
 import numpy as np
 from multiprocessing.sharedctypes import Array
 import ctypes
-# import myfunctions as my
 
+# import myfunctions as my
 
 
 # sets the number of cores
@@ -18,12 +18,33 @@ NUMCORES = mp.cpu_count()
 image = np.array(Image.open('lena.png'))
 
 # sets the kernels
-image_filter1 = np.ones((3, 3))
-image_filter2 = np.ones((1, 3))
+filter1 = np.array([
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0]
+])
+filter2 = np.array([0.5, 0, -0.5])
+filter3 = np.array([[0.5], [0], [0.5]])
+
+filter4 = np.array([
+    [1, 0, -1],
+    [2, 0, -2],
+    [1, 0, -1]
+])
+filter5 = np.array([
+    [0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633],
+    [0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965],
+    [0.01330373, 0.11098164, 0.22508352, 0.11098164, 0.01330373],
+    [0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965],
+    [0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633]
+])
 
 # initializes image
 
 print(f'Image shape: {image.shape}')
+
 
 def tonumpyarray(mp_arr):
     # mp_array is a shared memory array with lock
@@ -31,32 +52,33 @@ def tonumpyarray(mp_arr):
     return np.frombuffer(mp_arr.get_obj(), dtype=np.uint8)
 
 
-#HERE YOU HAVE TO DEFINE THE MULTIPROCESSING VECTOR FOR IMAGE1
-data_buffer1_size=image.shape[0]*image.shape[1]*image.shape[2]
-shared_space1= Array(ctypes.c_byte,data_buffer1_size)
-filtered_image1_VECTOR=tonumpyarray(shared_space1)
-filtered_image1= filtered_image1_VECTOR.reshape(image.shape)
+# HERE YOU HAVE TO DEFINE THE MULTIPROCESSING VECTOR FOR IMAGE1
+data_buffer1_size = image.shape[0] * image.shape[1] * image.shape[2]
+shared_space1 = Array(ctypes.c_byte, data_buffer1_size)
 
-#HERE YOU HAVE TO DEFINE THE MULTIPROCESSING VECTOR FOR IMAGE2
-data_buffer2_size=image.shape[0]*image.shape[1]*image.shape[2]
-shared_space2= Array(ctypes.c_byte,data_buffer2_size)
-filtered_image2_VECTOR=tonumpyarray(shared_space2)
-filtered_image2= filtered_image2_VECTOR.reshape(image.shape)
+# HERE YOU HAVE TO DEFINE THE MULTIPROCESSING VECTOR FOR IMAGE2
+data_buffer2_size = image.shape[0] * image.shape[1] * image.shape[2]
+shared_space2 = Array(ctypes.c_byte, data_buffer2_size)
 
 NUMCORES = mp.cpu_count()
 
-my.image_filter(image,image_filter1,NUMCORES,filtered_image1)
-my.image_filter(image,image_filter2,NUMCORES,filtered_image2)
+my.image_filter(image, filter3, NUMCORES, shared_space1)
+#my.image_filter(image, filter2, NUMCORES, shared_space2)
 
 print('hey')
-executes the parallel filtering processes
-def filters_execution(image,filter1,filter2,numprocessors,filtered_image1,filtered_image2):
+
+
+def filters_execution(p_image, p_filter1, p_filter2, p_numprocessors, p_shared_space1,
+                      p_shared_space2):
     # creates a lock to handle memory access
     lock = mp.Lock()
 
     # define and start the processes
-    p1 = mp.Process(target=my.image_filter,args=(image,filter1,numprocessors,filtered_image1))
-    p2 = mp.Process(target=my.image_filter,args=(image,filter2,numprocessors,filtered_image2))
+    p1 = mp.Process(target=my.image_filter, args=(p_image, p_filter1, p_numprocessors,
+                                                  p_shared_space1))
+
+    p2 = mp.Process(target=my.image_filter, args=(p_image, p_filter2, p_numprocessors,
+                                                  p_shared_space2))
 
     p1.start()
     p2.start()
@@ -66,5 +88,4 @@ def filters_execution(image,filter1,filter2,numprocessors,filtered_image1,filter
     p2.join()
 
 
-
-filters_execution(image1,filter1,filtered_image2,NUMCORES,filtered_image1,filtered_image2)
+filters_execution(image1, filter1, filter2, NUMCORES, shared_space1, shared_space2)
