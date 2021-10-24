@@ -62,7 +62,7 @@ shared_space2 = Array(ctypes.c_byte, data_buffer2_size)
 
 NUMCORES = mp.cpu_count()
 
-my.image_filter(image, filter3, NUMCORES, shared_space1)
+my.image_filter(image, filter2, NUMCORES, shared_space1)
 #my.image_filter(image, filter2, NUMCORES, shared_space2)
 
 print('hey')
