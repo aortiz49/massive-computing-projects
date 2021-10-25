@@ -58,7 +58,6 @@ print(f'Processing image..')
 
 def tonumpyarray(mp_arr):
     # mp_array is a shared memory array with lock
-
     return np.frombuffer(mp_arr.get_obj(), dtype=np.uint8)
 
 
@@ -99,6 +98,7 @@ def filters_execution(p_image, p_filter1, p_filter2, p_numprocessors, p_shared_s
     # wait until the processes have ended
     p1.join()
     p2.join()
+
 
 # define this in order to run the filters
 if __name__ == '__main__':
