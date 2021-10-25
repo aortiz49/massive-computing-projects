@@ -3,16 +3,14 @@ from PIL import Image
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import cProfile
+
 import functions as my
 import numpy as np
 from multiprocessing.sharedctypes import Array
 import ctypes
 
-# import myfunctions as my
-
-
 # sets the number of cores
-NUMCORES = mp.cpu_count()
+NUMCORES = int(mp.cpu_count() / 2)
 
 # opens images
 image = np.array(Image.open('lena.png'))
@@ -40,10 +38,11 @@ filter5 = np.array([
     [0.00655965, 0.05472157, 0.11098164, 0.05472157, 0.00655965],
     [0.00078633, 0.00655965, 0.01330373, 0.00655965, 0.00078633]
 ])
+filter6=np.array([0.5, 0 ,0,0, -0.5])
+filter7=np.array([[0.5],[0],[0],[0],[0.5]])
 
 # initializes image
-
-print(f'Image shape: {image.shape}')
+print(f'Processing image..')
 
 
 def tonumpyarray(mp_arr):
@@ -59,14 +58,6 @@ shared_space1 = Array(ctypes.c_byte, data_buffer1_size)
 # HERE YOU HAVE TO DEFINE THE MULTIPROCESSING VECTOR FOR IMAGE2
 data_buffer2_size = image.shape[0] * image.shape[1] * image.shape[2]
 shared_space2 = Array(ctypes.c_byte, data_buffer2_size)
-
-NUMCORES = mp.cpu_count()
-
-my.image_filter(image, filter3, NUMCORES, shared_space1)
-#my.image_filter(image, filter2, NUMCORES, shared_space2)
-
-print('hey')
-
 
 def filters_execution(p_image, p_filter1, p_filter2, p_numprocessors, p_shared_space1,
                       p_shared_space2):
@@ -88,4 +79,33 @@ def filters_execution(p_image, p_filter1, p_filter2, p_numprocessors, p_shared_s
     p2.join()
 
 
-filters_execution(image, filter1, filter2, NUMCORES, shared_space1, shared_space2)
+
+if __name__ == '__main__':
+    filters_execution(image, filter4, filter5, NUMCORES, shared_space1, shared_space2)
+
+    filtered_image1 = tonumpyarray(shared_space1).reshape(image.shape)
+    filtered_image2 = tonumpyarray(shared_space2).reshape(image.shape)
+
+    fig = plt.figure(figsize=(10, 7))
+
+    # Adds a subplot at the 1st position
+    fig.add_subplot(1, 2, 1)
+
+    # showing image
+    plt.imshow(filtered_image1)
+    plt.axis('off')
+    plt.title("Filter1")
+
+    # Adds a subplot at the 2nd position
+    fig.add_subplot(1, 2, 2)
+
+    # showing image
+    plt.imshow(filtered_image2)
+    plt.axis('off')
+    plt.title("Filter2")
+
+    plt.show()
+
+
+
+

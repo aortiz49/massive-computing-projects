@@ -7,6 +7,15 @@ import numpy as np
 
 
 def image_filter(p_image, p_filter, p_numprocessors, p_shared_space):
+    '''
+
+    :param p_image:
+    :param p_filter:
+    :param p_numprocessors:
+    :param p_shared_space:
+    :return:
+
+    '''
     # size contains the dimmensions of the filter
     size = p_filter.shape
     # Until here we had it OK yesterday
@@ -128,7 +137,6 @@ def tonumpyarray(mp_arr):
 
     return np.frombuffer(mp_arr.get_obj(), dtype=np.uint8)
 
-
 # This function initialize the global shared memory data
 
 def pool_init(shared_array_, srcimg, imgfilter):
@@ -181,6 +189,7 @@ Here we will define the first approach for the combined functions squared filter
 
 
 def squared_filter(row):
+    ''''''
     # Global memory recalling 
     global image
     global my_filter
