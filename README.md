@@ -1,1 +1,1 @@
-# MAssive Computing Projects Repo
+# Massive Computing Projects Repo
